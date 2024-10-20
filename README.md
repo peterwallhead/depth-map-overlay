@@ -17,7 +17,7 @@ pipenv install --dev
 - A Python dictionary of raw LiDAR distance measurements.
 
 ### Outputs (output/)
-- combined.jpg - Contains a grayscale version of the scenw image with the relative distance measurements overlayed as green dots. The more solid a green dot is the closer that point is to the camera.
+- combined.jpg - Contains a grayscale version of the scene image with the relative distance measurements overlayed as green dots. The more solid a green dot is the closer that point is to the camera.
 - points_only.jpg - Contains only the green dot points used in the combined image.
 
 ### Capture image from webcam (optional)
