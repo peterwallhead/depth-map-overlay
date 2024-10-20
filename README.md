@@ -22,7 +22,7 @@ pipenv install --dev
 
 ### Capture image from webcam (optional)
 ```
-pipenv run python tools/capture_scene_image.py --camera_source 0 --filename scene.jpg
+pipenv run python tools/capture_scene_image.py --camera_source 0 --filename input/scene.jpg
 ```
 ### Generate composite image
 ```
