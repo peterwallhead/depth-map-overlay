@@ -4,6 +4,8 @@
 
 Overlay a graphical representation of distance readings from a 2D LiDAR scanner onto a POV image taken of a mobile robot's FOV.
 
+![](output/combined.png)
+
 ## Install
 ```
 pipenv install --dev
