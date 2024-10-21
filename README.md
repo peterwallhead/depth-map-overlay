@@ -42,8 +42,12 @@ Adjust in ```generate.py```.
 - CAMERA_VERTICAL_CENTREPOINT_IN_FRAME_MM = 130
 - LIDAR_VERTICAL_OFFSET_MM = 45
 - LIDAR_DISTANCE_OFFSET_MM = -120
+- CAMERA_FOCAL_LENGTH_MM = 3.6
 
 ## Limitations
-- The depth data is projected as a straight line across the scene and is a close fit to reality, but not an exact representation.
-- For now, the camera's focal length is not taken into account when rendering the final image.
 - The format and parsing of the LiDAR data file is not ideal (working with data generated for another project).
+
+## Changelog
+### 21 October 2024
+- CAMERA_FOCAL_LENGTH_MM setting is now required (changed from reserved).
+- Depth map overlay is more tightly fitting the scene. No longer just a straight line across the scene (using the camera's focal length to approximate the vanishing point).
