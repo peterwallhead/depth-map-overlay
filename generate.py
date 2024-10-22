@@ -18,7 +18,7 @@ CAMERA_VERTICAL_CENTREPOINT_IN_FRAME_PX = CAMERA_VERTICAL_RESOLUTION_PX / 2
 CAMERA_VERTICAL_CENTREPOINT_IN_FRAME_MM = 130 
 
 # LiDAR is mounted above and behind the camera
-LIDAR_VERTICAL_OFFSET_MM = 45
+LIDAR_VERTICAL_OFFSET_MM = 55
 LIDAR_DISTANCE_OFFSET_MM = -120
 
 # Approximates the number of pixels per mm
@@ -36,6 +36,17 @@ MAX_HORIZONTAL_FOV = CAMERA_HORIZONTAL_FOV_DEGREES / 2
 
 VANISHING_POINT_Y = CAMERA_VERTICAL_RESOLUTION_PX - (CAMERA_VERTICAL_CENTREPOINT_IN_FRAME_MM * CAMERA_FOCAL_LENGTH_MM / VERTICAL_PX_PER_MM) - (LIDAR_VERTICAL_OFFSET_MM / VERTICAL_PX_PER_MM)
 
+def depth_to_color(value):
+    """Convert a value between 0 and 1 to a color between blue (0) and red (1)."""
+    if not (0 <= value <= 1):
+        raise ValueError("Value should be between 0 and 1")
+
+    # Interpolate between blue (0, 0, 255) and red (255, 0, 0)
+    r = int(255 * value)
+    g = 0  # green remains constant at 0
+    b = int(255 * (1 - value))
+
+    return (r, g, b)
 
 def process_data_in_fov(data):
     data_in_fov = []
@@ -43,7 +54,7 @@ def process_data_in_fov(data):
 
     for angle, distance in data.items():
         if (float(angle) >= MIN_HORIZONTAL_FOV or float(angle) <= MAX_HORIZONTAL_FOV) and distance != 0.0:
-            distance = (distance + LIDAR_DISTANCE_OFFSET_MM) * math.cos(math.radians(float(angle)))
+            distance = int((distance + LIDAR_DISTANCE_OFFSET_MM) * math.cos(math.radians(float(angle))))
         
             if float(angle) >= MIN_HORIZONTAL_FOV:
                 angle_key = -(360 - float(angle))
@@ -61,6 +72,17 @@ def process_data_in_fov(data):
 
     return data, maximum_distance_measurement, vanishing_point_x, vanishing_point_x_angle_key
 
+def calculate_slope_point_y_spacing(points, vanishing_point_angle):
+    num_points_positive = 0
+    num_points_negative = 0
+
+    for angle, distance in points:
+        if angle <= vanishing_point_angle:
+            num_points_positive += 1
+        elif angle > vanishing_point_angle:
+            num_points_negative += 1
+
+    return num_points_positive, num_points_negative
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Depth Map Overlay Generator')
@@ -84,22 +106,32 @@ if __name__ == '__main__':
 
         draw = ImageDraw.Draw(overlay)
 
-        num_points = len(data_in_fov)
+        num_points_positive, num_points_negative = calculate_slope_point_y_spacing(data_in_fov, vanishing_point_x_angle_key)
 
-        for i in range(num_points):
-            t = i / num_points
-            if data_in_fov[i][0] <= vanishing_point_x_angle_key:
-                x = (CAMERA_HORIZONTAL_RESOLUTION_PX / 2) + (HORIZONTAL_PX_PER_DEGREES_FOV * data_in_fov[i][0])
+        i = 0
+        for angle, distance in data_in_fov:
+            if angle <= vanishing_point_x_angle_key:
+                t = i / num_points_positive
+                x = (CAMERA_HORIZONTAL_RESOLUTION_PX / 2) + (HORIZONTAL_PX_PER_DEGREES_FOV * angle)
                 y = int(MARKER_Y + t * (VANISHING_POINT_Y - MARKER_Y))
-            elif data_in_fov[i][0] > vanishing_point_x_angle_key:
-                x = (CAMERA_HORIZONTAL_RESOLUTION_PX / 2) + (HORIZONTAL_PX_PER_DEGREES_FOV * data_in_fov[i][0])
+
+                point_opacity = int((1 - (distance / maximum_distance_measurement)) * 100)
+                draw.circle((x,y), HORIZONTAL_PX_PER_DEGREES_FOV, (255, 0, 0, point_opacity))
+
+                i += 1
+
+        i = 0
+        for angle, distance in data_in_fov:
+            if angle > vanishing_point_x_angle_key:
+                t = i / num_points_negative
+                x = (CAMERA_HORIZONTAL_RESOLUTION_PX / 2) + (HORIZONTAL_PX_PER_DEGREES_FOV * angle)
                 y = int(VANISHING_POINT_Y + t * (MARKER_Y - VANISHING_POINT_Y))
+
+                point_opacity = int((1 - (distance / maximum_distance_measurement)) * 100)
+                draw.circle((x,y), HORIZONTAL_PX_PER_DEGREES_FOV, (255, 0, 0, point_opacity))
+
+                i += 1
         
-            
-            point_opacity = int((1 - (data_in_fov[i][1] / maximum_distance_measurement)) * 100)
-
-            draw.circle((x,y), HORIZONTAL_PX_PER_DEGREES_FOV, (0, 255, 0, point_opacity))
-
         # Uncomment the following 3 lines to help with debugging
         # draw.circle((VANISHING_POINT_X, VANISHING_POINT_Y), HORIZONTAL_PX_PER_DEGREES_FOV, (255, 0, 0, 100))
         # draw.line((0, MARKER_Y, VANISHING_POINT_X, VANISHING_POINT_Y), fill='red', width=1)

@@ -17,8 +17,8 @@ pipenv install --dev
 - A Python dictionary of raw LiDAR distance measurements.
 
 ### Outputs (output/)
-- combined.jpg - Contains a grayscale version of the scene image with the relative distance measurements overlayed as green dots. The more solid a green dot is the closer that point is to the camera.
-- points_only.jpg - Contains only the green dot points used in the combined image.
+- combined.jpg - Contains a grayscale version of the scene image with the relative distance measurements overlayed as red dots. The more solid a red dot is the closer that point is to the camera.
+- points_only.jpg - Contains only the red dot points used in the combined image.
 
 ### Capture image from webcam (optional)
 ```
@@ -48,6 +48,9 @@ Adjust in ```generate.py```.
 - The format and parsing of the LiDAR data file is not ideal (working with data generated for another project).
 
 ## Changelog
-### 21 October 2024
+#### 22 October 2024
+- Correct interpolation to the vanishing point.
+- Change dot colour to red.
+#### 21 October 2024
 - CAMERA_FOCAL_LENGTH_MM setting is now required (changed from reserved).
 - Depth map overlay is more tightly fitting the scene. No longer just a straight line across the scene (using the camera's focal length to approximate the vanishing point).
