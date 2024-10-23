@@ -6,7 +6,7 @@ import cv2
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Scene Image Capture')
     parser.add_argument('-c', '--camera_source', help='Camera source ID',
-                        default=0)
+                        default=0, type=int)
     parser.add_argument('-f', '--filename', help='Filename for captured image',
                         default='input/scene.jpg')
     args = parser.parse_args()
